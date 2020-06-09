@@ -136,6 +136,23 @@ class ControllerExtensionPaymentSSLCommerce extends Controller {
 			$data['payment_SSLCommerce_sort_order'] = $this->config->get('payment_SSLCommerce_sort_order');
 		}
 		
+        $string = $this->url->link('extension/payment/SSLCommerce/sslcommerz_ipn', '', 'SSL');
+		$data['payment_SSLCommerce_ipn_url'] = preg_replace('~/admin+~', '', $string, 1);
+		
+        $data['header'] = $this->load->controller('common/header');
+		$data['column_left'] = $this->load->controller('common/column_left');
+		$data['footer'] = $this->load->controller('common/footer');
+  
+             /* admin/view/template/extension/payment/SSLCommerce.twig */
+             
+        $string = $this->url->link('extension/payment/SSLCommerce/sslcommerz_ipn', '', 'SSL');
+		// $data['payment_SSLCommerce_ipn_url'] = preg_replace('~/admin+~', '', $string, 1);
+
+    	$search    = '/admin';
+    	$replace   = '';
+    	$str = $this->str_replace_last( $search , $replace , $string );
+		$data['payment_SSLCommerce_ipn_url'] = $str;
+		
         $data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
@@ -143,7 +160,17 @@ class ControllerExtensionPaymentSSLCommerce extends Controller {
              /* admin/view/template/extension/payment/SSLCommerce.twig */
   
 		$this->response->setOutput($this->load->view('extension/payment/SSLCommerce', $data));
+  
+		$this->response->setOutput($this->load->view('extension/payment/SSLCommerce', $data));
 		
+	}
+	
+	private function str_replace_last( $search , $replace , $str ) {
+	    if( ( $pos = strrpos( $str , $search ) ) !== false ) {
+	        $search_length  = strlen( $search );
+	        $str    = substr_replace( $str , $replace , $pos , $search_length );
+	    }
+	    return $str;
 	}
 
 	private function validate() {

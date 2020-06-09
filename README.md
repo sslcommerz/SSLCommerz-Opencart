@@ -11,7 +11,7 @@ This Module Work for Opencart Version 3.x.x
 
 ### Feature
 
-  - Version 3.0 API
+  - Version 3.5 API
 
 ### Installation Steps:
 

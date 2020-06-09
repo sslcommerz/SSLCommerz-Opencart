@@ -21,6 +21,7 @@ $_['entry_order_risk_status'] = 'Order Status (Payment Risk):';
 $_['entry_geo_zone']     = 'Geo Zone:';
 $_['entry_status']       = 'Status:';
 $_['entry_sort_order']   = 'Sort Order:';
+$_['ipn_url']			 = 'IPN URL:';
 
 // Error
 $_['error_permission']   = 'Warning: You do not have permission to modify payment SSLCommerce! You Must have SSLCommerce Store ID to Active the Account. Please Contact with SSLCommerce for Marchant.<a href="https://www.sslcommerz.com/" target="_blank">Click to Contact</a>';
