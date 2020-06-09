@@ -12,6 +12,7 @@ This Module Work for Opencart Version 3.x.x
 ### Feature
 
   - Version 3.5 API
+  - IPN
 
 ### Installation Steps:
 
