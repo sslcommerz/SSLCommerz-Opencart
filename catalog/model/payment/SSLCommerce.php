@@ -1,4 +1,5 @@
 <?php
+
 class ModelPaymentSSLCommerce extends Model {
   	public function getMethod($address, $total) {
 		$this->load->language('payment/SSLCommerce');
@@ -20,6 +21,7 @@ class ModelPaymentSSLCommerce extends Model {
 		if ($status) {  
       		$method_data = array( 
         		'code'       => 'SSLCommerce',
+				'terms'      => '',
         		'title'      => $this->language->get('text_title'),
 				'sort_order' => $this->config->get('SSLCommerce_sort_order')
       		);

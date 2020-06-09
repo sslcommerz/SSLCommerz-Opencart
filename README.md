@@ -1,29 +1,27 @@
-# OpenCart-sslcommerz1.5.1-1.5.6
+# SSLCOMMERZ_OPENCART_2.0-2.1
 SSLCOMMERZ-Online Payment Gateway For Bangladesh
 
+The module for receiving Payments from Bangladesh through SSLCommerz.com for opencart V2.0.0 / V2.1.0.2 (Guids)
 
+First Download the File form OpenCart Extenstion SSLCOMMERZ_OPENCART_2.0-2.1
 
-The module for receiving Payments from Bangladesh through SSLCommerz.com for opencart V1.5.0 / V1.5.6 (Guids)
+Unzip Downloaded File Named SSLCOMMERZ_OPENCART_2.0-2.1.zip in a Folder.
 
-1. First Download the File form OpenCart Extenstion OpenCart-sslcommerz1.5.1-1.5.6
+Upload Folder Name catalog and admin to the Root of you server where your opencart installed.
 
-2. Unzip Downloaded File Named SSLCOMMERZ_OPENCART_1.5.6.zip in a Folder.
+Copy the contents of this package to your opencart installation keeping the folder structure.
 
-3. Upload Folder Name catalog and admin to the Root of you server where your opencart installed.
+Overwrite files/folders as necessary (no core opencart files will be overwritten)
 
-4. Copy the contents of this package to your opencart installation keeping the folder structure.
+Login to the Open Cart admin section and go to Extensions > Payments
 
-5. Overwrite files/folders as necessary (no core opencart files will be overwritten)
+Find sslcommerz V3 or find the logo of sslcommerz in the list of extensions
 
-6. Login to the Open Cart admin section and go to Extensions > Payments
+Click "Install" and then "Edit" the payment module settings
 
-7. Find sslcommerz V3 or find the logo of sslcommerz in the list of extensions
+Add * Stroe ID and Validation password : Provided By sslcommerz.com
 
-8. Click "Install" and then "Edit" the payment module settings
-
-9. Add * Stroe ID and Validation password : Provided By sslcommerz.com
-
-10. Do a test transaction
+Do a test transaction
 
 Note : For Sandbox Mode You Must Input Test Creadentials of SSLCommerz. And for Live You Must input Live Credentials form SSLCommerz
 
