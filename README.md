@@ -11,8 +11,9 @@ This Module Work for Opencart Version 3.x.x
 
 ### Feature
 
-  - Version 3.5 API
-  - IPN
+  - New version 4 API
+  - New easyCheckout Popup UI
+  - Dynamic IPN URL(Auto Configure)
 
 ### Installation Steps:
 
@@ -58,4 +59,4 @@ Notes :
 - Team Email: integration@sslcommerz.com (For any query)
 - More info: https://www.sslcommerz.com
 
-© 2018 SSLCOMMERZ ALL RIGHTS RESERVED
+© 2019 SSLCOMMERZ ALL RIGHTS RESERVED
