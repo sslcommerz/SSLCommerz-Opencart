@@ -7,76 +7,97 @@ class ControllerPaymentSSLCommerce extends Controller {
 		$this->load->model('checkout/order');
 
 		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-
-		$data['store_id'] = $this->config->get('SSLCommerce_merchant');
-		$data['tran_id'] = $this->session->data['order_id'];
-		$data['total_amount'] = $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false);
-		
-			$data['SSLCommerce_password'] = $this->config->get('SSLCommerce_password');
-
-		$data['cus_name'] = $order_info['payment_firstname'] . ' ' . $order_info['payment_lastname'];
-		$data['cus_add1'] = $order_info['payment_address_1'];
-		$data['cus_add2'] = $order_info['payment_address_2'];
-		$data['cus_city'] = $order_info['payment_city'];
-		$data['cus_state'] = $order_info['payment_zone'];
-		$data['cus_postcode'] = $order_info['payment_postcode'];
-		$data['cus_country'] = $order_info['payment_country'];
-		$data['cus_phone'] = $order_info['telephone'];
-		$data['cus_email'] = $order_info['email'];
-
-		if ($this->cart->hasShipping()) {
-			$data['ship_name'] = $order_info['shipping_firstname'] . ' ' . $order_info['shipping_lastname'];
-			$data['ship_add1'] = $order_info['shipping_address_1'];
-			$data['ship_add2'] = $order_info['shipping_address_2'];
-			$data['ship_city'] = $order_info['shipping_city'];
-			$data['ship_state'] = $order_info['shipping_zone'];
-			$data['ship_postcode'] = $order_info['shipping_postcode'];
-			$data['ship_country'] = $order_info['shipping_country'];
-		} else {
-			$data['ship_name'] = '';
-			$data['ship_add1'] = '';
-			$data['ship_add2'] = '';
-			$data['ship_city'] = '';
-			$data['ship_state'] = '';
-			$data['ship_postcode'] = '';
-			$data['ship_country'] = '';
+		$total_amount = $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false);
+		if($total_amount>=10000)
+		{
+			$emi_option = 1;
+			#$data['emi_selected_inst'] = 3;
+			$emi_max_inst_option = 3;
 		}
-              
-		$data['currency'] = $this->currency->getCode();
-		$data['success_url'] = $this->url->link('payment/SSLCommerce/callback', '', 'SSL');
-        $data['fail_url'] = $this->url->link('payment/SSLCommerce/failure', '', 'SSL');
-        $data['cancel_url'] = $this->url->link('checkout/cart', '', 'SSL');
-		
-		////Hash Key Gernarate For SSL
-		$security_key = $this->sslcommerz_hash_key($this->config->get('SSLCommerce_password'), $data);
-		
-		$data['verify_sign'] = $security_key['verify_sign'];
-        $data['verify_key'] = $security_key['verify_key'];
+		else {
+		    	$emi_option = 0;
+			#$data['emi_selected_inst'] = 3;
+			$emi_max_inst_option = 0;
+		    
+		}
 
+		 //NEW API OF SSLCOMMERZ
+            $post_data = array(
+                'store_id'      => $this->config->get('SSLCommerce_merchant'),
+                'store_passwd' => $this->config->get('SSLCommerce_password'),
+                'total_amount'           => $total_amount,
+                'tran_id'         => $this->session->data['order_id'],
+                'success_url' => $this->url->link('payment/SSLCommerce/callback', '', 'SSL'),
+                'fail_url' => $this->url->link('payment/SSLCommerce/failure', '', 'SSL'),
+                'cancel_url' => $this->url->link('checkout/cart', '', 'SSL'),
+                'cus_name'     => $order_info['payment_firstname'] . ' ' . $order_info['payment_lastname'],
+                'cus_add1'  => trim($order_info['payment_address_1'], ','),
+                'cus_country'  => $order_info['payment_country'],
+                'cus_state'    => $order_info['payment_zone'],
+                'cus_city'     => $order_info['payment_city'],
+                'cus_postcode'      => $order_info['payment_postcode'],
+                'cus_phone'      => $order_info['telephone'],
+                'cus_email'    => $order_info['email'],
+                'ship_name'    => $order_info['shipping_firstname'] . ' ' . $order_info['shipping_lastname'],
+                'ship_add1' => $order_info['shipping_address_1'],
+                'ship_country' => $order_info['shipping_country'],
+                'ship_state'   => $order_info['shipping_zone'],
+                'delivery_tel'     => '',
+                'ship_city'    => $order_info['shipping_city'],
+                'ship_postcode'     => $order_info['shipping_postcode'],
+                'emi_option'         => $emi_option,
+                '$emi_max_inst_option'        => $emi_max_inst_option,
+                'currency'         => $this->session->data['currency']
+                );
+      
 		
+	if($this->config->get('SSLCommerce_test')=='live') {
+				$liveurl = 'https://securepay.sslcommerz.com/gwprocess/v3/api.php';
+			}
+		else {
+				$liveurl = 'https://sandbox.sslcommerz.com/gwprocess/v3/api.php';
+			}	
 		
-		$products = '';
+		# REQUEST SEND TO SSLCOMMERZ
+$handle = curl_init();
+curl_setopt($handle, CURLOPT_URL, $liveurl);
+curl_setopt($handle, CURLOPT_TIMEOUT, 10);
+curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
+curl_setopt($handle, CURLOPT_POST, 1 );
+curl_setopt($handle, CURLOPT_POSTFIELDS, $post_data);
+curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+$content = curl_exec($handle );
+$code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+if($code == 200 && !( curl_errno($handle))) {
+	curl_close( $handle);
+	$sslcommerzResponse = $content;
+	
+# PARSE THE JSON RESPONSE
+$sslcz = json_decode($sslcommerzResponse, true );
+} else {
+	curl_close( $handle);
+	echo "FAILED TO CONNECT WITH SSLCOMMERZ API";
+	exit;
+}
 		
-		
-		foreach ($this->cart->getProducts() as $product) {
-    		$products .= $product['quantity'] . ' x ' . $product['name'] . ', ';
-    	}		
-		
-		$data['detail1_text'] = $products;
+	//echo '<pre>'; print_r($sslcz); echo'</pre>';	
 		
 		
 		if($this->config->get('SSLCommerce_test')=='live') {
-				$data['process_url'] = 'https://securepay.sslcommerz.com/gwprocess/v3/process.php';
+				$data['process_url'] = $sslcz['GatewayPageURL'];
 			}
 		else {
-				$data['process_url'] = 'https://sandbox.sslcommerz.com/gwprocess/v3/process.php';
+				$data['process_url'] = $sslcz['GatewayPageURL'];
 			}
 
 
-		if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/payment/SSLCommerce.tpl')) {
-			return $this->load->view($this->config->get('config_template') . '/template/payment/SSLCommerce.tpl', $data);
+
+
+
+		if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . 'payment/SSLCommerce.tpl')) {
+			return $this->load->view($this->config->get('config_template') . 'payment/SSLCommerce.tpl', $data);
 		} else {
-			return $this->load->view('default/template/payment/SSLCommerce.tpl', $data);
+			return $this->load->view('payment/SSLCommerce.tpl', $data);
 		}
 	}
 	
@@ -299,10 +320,10 @@ if($code == 200 && !( curl_errno($handle)))
 			$data['footer'] = $this->load->controller('common/footer');
 			$data['header'] = $this->load->controller('common/header');
 
-			if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/payment/success.tpl')) {
-				$this->response->setOutput($this->load->view($this->config->get('config_template') . '/template/payment/success.tpl', $data));
+			if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . 'payment/success.tpl')) {
+				$this->response->setOutput($this->load->view($this->config->get('config_template') . 'payment/success.tpl', $data));
 			} else {
-				$this->response->setOutput($this->load->view('default/template/payment/success.tpl', $data));
+				$this->response->setOutput($this->load->view('payment/success.tpl', $data));
 			}
 
 			}
@@ -341,10 +362,10 @@ if($code == 200 && !( curl_errno($handle)))
 			$data['footer'] = $this->load->controller('common/footer');
 			$data['header'] = $this->load->controller('common/header');
 
-				if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/payment/Commerce_risk.tpl')) {
-					$this->response->setOutput($this->load->view($this->config->get('config_template') . '/template/payment/Commerce_risk.tpl', $data));
+				if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . 'payment/Commerce_risk.tpl')) {
+					$this->response->setOutput($this->load->view($this->config->get('config_template') . 'payment/Commerce_risk.tpl', $data));
 				} else {
-					$this->response->setOutput($this->load->view('default/template/payment/Commerce_risk.tpl', $data));
+					$this->response->setOutput($this->load->view('payment/Commerce_risk.tpl', $data));
 				}
 
 			} else {
@@ -361,10 +382,10 @@ if($code == 200 && !( curl_errno($handle)))
 			$data['footer'] = $this->load->controller('common/footer');
 			$data['header'] = $this->load->controller('common/header');
 
-			if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/payment/Commerce_failure.tpl')) {
+			if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . 'payment/Commerce_failure.tpl')) {
 				$this->response->setOutput($this->load->view($this->config->get('config_template') . '/template/payment/Commerce_failure.tpl', $data));
 			} else {
-				$this->response->setOutput($this->load->view('default/template/payment/Commerce_failure.tpl', $data));
+				$this->response->setOutput($this->load->view('payment/Commerce_failure.tpl', $data));
 			}
 	
 

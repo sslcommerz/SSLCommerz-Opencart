@@ -38,6 +38,10 @@ class ControllerPaymentSSLCommerce extends Controller {
 		$data['text_successful'] = $this->language->get('text_successful');
 		$data['text_fail'] = $this->language->get('text_fail');
 
+	$data['emi_live'] = $this->language->get('emi_live');
+		$data['emi_disable'] = $this->language->get('emi_disable');
+$data['entry_emi'] = $this->language->get('entry_emi');
+
 		$data['enter_store_id'] = $this->language->get('enter_store_id');
 		$data['entry_store_password'] = $this->language->get('entry_store_password');
 		$data['entry_test'] = $this->language->get('entry_test');
@@ -104,6 +108,12 @@ class ControllerPaymentSSLCommerce extends Controller {
 			$data['SSLCommerce_test'] = $this->request->post['SSLCommerce_test'];
 		} else {
 			$data['SSLCommerce_test'] = $this->config->get('SSLCommerce_test');
+		}
+		
+		if (isset($this->request->post['SSLCommerce_emi'])) {
+			$data['SSLCommerce_emi'] = $this->request->post['SSLCommerce_emi'];
+		} else {
+			$data['SSLCommerce_emi'] = $this->config->get('SSLCommerce_emi');
 		}
 
 		if (isset($this->request->post['SSLCommerce_total'])) {
