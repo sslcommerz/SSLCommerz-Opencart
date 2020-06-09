@@ -24,7 +24,7 @@
 class ControllerExtensionPaymentSSLCommerce extends Controller {
 	// Payment Process Funciton 
 	public function index() {
-$this->language->load( 'extension/payment/SSLCommerce' );
+		$this->language->load( 'extension/payment/SSLCommerce' );
 		$data['button_confirm'] = $this->language->get('button_confirm');
 
 		$this->load->model('checkout/order');
@@ -87,20 +87,187 @@ $this->language->load( 'extension/payment/SSLCommerce' );
 		
 		$data['detail1_text'] = $products;
 		
-		
-		if($this->config->get('SSLCommerce_test')=='live') {
-				$data['process_url'] = 'https://securepay.sslcommerz.com/gwprocess/v3/process.php';
-			}
-		else {
-				$data['process_url'] = 'https://sandbox.sslcommerz.com/gwprocess/v3/process.php';
-			}
 
+		if($this->config->get('SSLCommerce_test')=='live') {
+			$data['process_url'] = $this->url->link('extension/payment/SSLCommerce/sendrequest', '', 'SSL');
+			$data['api_type'] = "NO";
+		}
+		else {
+			$data['process_url'] = $this->url->link('extension/payment/SSLCommerce/sendrequest', '', 'SSL');
+			$data['api_type'] = "YES";
+		}
 
 		if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . 'extension/payment/SSLCommerce.tpl')) {
 			return $this->load->view($this->config->get('config_template') . 'extension/payment/SSLCommerce.tpl', $data);
 		} else {
 			return $this->load->view('extension/payment/SSLCommerce.tpl', $data);
 		}
+	}
+
+	public function sendrequest()
+	{
+		$this->load->model('checkout/order');
+
+		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);// update order status as pending
+		
+		foreach ($this->cart->getProducts() as $product) {
+    		$products = $product['name'] . ', ';
+    	}
+    	$quantity=0;
+    	foreach ($this->cart->getProducts() as $product) {
+    		$quantity++;
+    	}
+    	
+		$data['store_id'] = $this->config->get('SSLCommerce_merchant');
+		$data['tran_id'] = $_REQUEST['order'];
+		$data['total_amount'] = $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false);
+		
+		$data['store_passwd'] = $this->config->get('SSLCommerce_password');
+
+		$data['cus_name'] = $order_info['payment_firstname'] . ' ' . $order_info['payment_lastname'];
+		$data['cus_add1'] = $order_info['payment_address_1'];
+		$data['cus_add2'] = $order_info['payment_address_2'];
+		$data['cus_city'] = $order_info['payment_city'];
+		$data['cus_state'] = $order_info['payment_zone'];
+		$data['cus_postcode'] = $order_info['payment_postcode'];
+		$data['cus_country'] = $order_info['payment_country'];
+		$data['cus_phone'] = $order_info['telephone'];
+		$data['cus_email'] = $order_info['email'];
+		if ($this->cart->hasShipping()) {
+			$data['ship_name'] = $order_info['shipping_firstname'] . ' ' . $order_info['shipping_lastname'];
+			$data['ship_add1'] = $order_info['shipping_address_1'];
+			$data['ship_add2'] = $order_info['shipping_address_2'];
+			$data['ship_city'] = $order_info['shipping_city'];
+			$data['ship_state'] = $order_info['shipping_zone'];
+			$data['ship_postcode'] = $order_info['shipping_postcode'];
+			$data['ship_country'] = $order_info['shipping_country'];
+			$ship = "YES";
+		} else {
+			$data['ship_name'] = $order_info['payment_firstname'] . ' ' . $order_info['payment_lastname'];
+			$data['ship_add1'] = $order_info['payment_address_1'];
+			$data['ship_add2'] = $order_info['payment_address_2'];
+			$data['ship_city'] = $order_info['payment_city'];
+			$data['ship_state'] = $order_info['payment_zone'];
+			$data['ship_postcode'] = $order_info['payment_postcode'];
+			$data['ship_country'] = $order_info['payment_country'];
+			$ship = "NO";
+		}
+		$data['currency']       = $order_info['currency_code'];
+		$data['success_url'] = $this->url->link('extension/payment/SSLCommerce/callback', '', 'SSL');
+        $data['fail_url'] = $this->url->link('extension/payment/SSLCommerce/Failed', '', 'SSL');
+        $data['cancel_url'] = $this->url->link('extension/payment/SSLCommerce/Cancelled', '', 'SSL');
+        $data['ipn_url'] = $this->url->link('extension/payment/SSLCommerce/sslcommerz_ipn', '', 'SSL');
+		$data['shipping_method']   = $ship;
+    	$data['num_of_item']       = $quantity;
+    	$data['product_name']      = $products;
+    	$data['product_category']  = 'Ecommerce';
+    	$data['product_profile']   = 'general';
+    	
+		$security_key = $this->sslcommerz_hash_key($this->config->get('SSLCommerce_password'), $data);
+		
+		$data['verify_sign'] = $security_key['verify_sign'];
+        $data['verify_key'] = $security_key['verify_key'];
+
+
+        if($this->config->get('SSLCommerce_test')=='live') 
+		{
+			$redirect_url = 'https://securepay.sslcommerz.com/gwprocess/v4/api.php';
+			$api_type = "NO";
+		}
+		else 
+		{
+			$redirect_url = 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php';
+			$api_type = "YES";
+		}
+
+		$handle = curl_init();
+		curl_setopt($handle, CURLOPT_URL, $redirect_url);
+		curl_setopt($handle, CURLOPT_TIMEOUT, 10);
+		curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_setopt($handle, CURLOPT_POST, 1 );
+		curl_setopt($handle, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+		$content = curl_exec($handle );
+		$code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+		
+		if($code == 200 && !( curl_errno($handle))) 
+		{
+		  	curl_close( $handle);
+		  	$sslcommerzResponse = $content;
+
+		  	$sslcz = json_decode($sslcommerzResponse, true );
+		  	
+		  	// print_r($sslcz);exit;
+		  	
+		  	if($sslcz['status']=='SUCCESS')
+		  	{
+		  	    $tran_id = $this->session->data['order_id'];
+		  	    // update order status to 1 from 0.
+				$this->model_checkout_order->addOrderHistory($tran_id, $this->config->get('config_order_status_id'), 'Order Initiated');
+				
+                if(isset($sslcz['GatewayPageURL']) && $sslcz['GatewayPageURL']!="") 
+                {
+            		if($api_type == "NO")
+            		{
+            			echo json_encode(['status' => 'SUCCESS', 'data' => $sslcz['GatewayPageURL'], 'logo' => $sslcz['storeLogo'] ]);
+            			
+            			exit;
+            		}
+            		else if($api_type == "YES")
+            		{
+            			echo json_encode(['status' => 'success', 'data' => $sslcz['GatewayPageURL'], 'logo' => $sslcz['storeLogo'] ]);
+            			exit;
+            		}
+            		
+            	   //return json_encode(['status' => 'SUCCESS', 'data' => $sslcz['GatewayPageURL'], 'logo' => $sslcz['storeLogo'] ]);
+            	} 
+            }
+            else {
+        	   echo json_encode(['status' => 'FAILED', 'data' => null, 'message' => "JSON Data parsing error!"]);
+        	}
+		}
+		else
+		{
+			echo "CURL not activate!";
+		}
+	}
+
+	public function Failed() 
+	{
+	    $this->load->model('checkout/order');
+	    if (isset($_POST['tran_id'])) 
+        {
+			$order_id = $_POST['tran_id'];
+		} 
+	    if(isset($_POST['status']) && $_POST['status'] == 'FAILED')
+	    {
+	        $this->model_checkout_order->addOrderHistory($order_id, $this->config->get('SSLCommerce_order_fail_id'), "Order Failed By User", false);
+	        echo "
+                <script>
+                    window.location.href = '" . $this->url->link('checkout/failure', '', 'SSL') . "';
+                </script>
+            ";
+            exit;
+	    }
+	}
+	
+	public function Cancelled() 
+	{
+	    $this->load->model('checkout/order');
+	    if (isset($_POST['tran_id'])) 
+        {
+			$order_id = $_POST['tran_id'];
+		} 
+	    if(isset($_POST['status']) && $_POST['status'] == 'CANCELLED')
+	    {
+	        $this->model_checkout_order->addOrderHistory($order_id, $this->config->get('SSLCommerce_order_risk_id'), "Order Cancelled By User", false);
+	        echo "
+                <script>
+                    window.location.href = '" . $this->url->link('checkout/cart', '', 'SSL') . "';
+                </script>
+            ";
+            exit;
+	    }
 	}
 	
 	
@@ -401,6 +568,108 @@ if($code == 200 && !( curl_errno($handle)))
 		}
 	}
 	
+	public function sslcommerz_ipn()
+		{
+			$this->load->model('checkout/order');
+			$order_id = $_POST['tran_id'];
+			$val_id = $_POST['val_id'];
+			$status = $_POST['status'];
+			
+			$order_info = $this->model_checkout_order->getOrder($order_id);
+			$store_passwd = $this->config->get('SSLCommerce_password');
+			$store_id = $this->config->get('SSLCommerce_merchant');
+
+			$order_status = $order_info['order_status'];
+			$amount_rat = $_POST['amount'];
+			
+			if($status == 'FAILED')
+			{
+			    $this->load->model('checkout/order');
+                $order_id = $_POST['tran_id'];
+                $this->model_checkout_order->addOrderHistory($order_id, $this->config->get('SSLCommerce_order_fail_id'), "Order Failed By IPN", false);
+			    echo "Order ".$status." By IPN";
+			}
+			elseif($status == 'CANCELLED')
+			{
+			    $this->load->model('checkout/order');
+                $order_id = $_POST['tran_id'];
+                $this->model_checkout_order->addOrderHistory($order_id, $this->config->get('SSLCommerce_order_risk_id'), "Order Cancelled By IPN", false);
+			    echo "Order ".$status." By IPN";
+			}
+			elseif($status == 'VALID' || $status == 'VALIDATED')
+			{
+    			if($this->config->get('SSLCommerce_test')=='live')
+                {
+                    $valid_url_own = ("https://securepay.sslcommerz.com/validator/api/validationserverAPI.php?val_id=".$val_id."&Store_Id=".$store_id."&Store_Passwd=".$store_passwd."&v=1&format=json");
+                } 
+                else
+                {
+                    $valid_url_own = ("https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php?val_id=".$val_id."&Store_Id=".$store_id."&Store_Passwd=".$store_passwd."&v=1&format=json");  
+                }
+    
+    			$handle = curl_init();
+    			curl_setopt($handle, CURLOPT_URL, $valid_url_own);
+    			curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+    			curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false);
+    			curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+    				
+    			$result = curl_exec($handle);
+    			  	
+    			
+    			$code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+    				
+    			if($code == 200 && !( curl_errno($handle)))
+    			{	
+    				$result = json_decode($result);
+    
+    				if($this->sslcommerz_hash_key($store_passwd, $_POST))
+    				{
+    					if ($_POST['currency_amount'] == $result->currency_amount) 
+    					{
+    						if($result->status=='VALIDATED' || $result->status=='VALID') 
+    						{
+    							if($order_status == 'Pending')
+    							//if($order_status == '')
+    							{
+    								if($_POST['card_type'] != "")
+    								{
+    									//$this->load->model('checkout/order');
+    									$this->model_checkout_order->addOrderHistory($order_id, $this->config->get('SSLCommerce_order_status_id'), 'IPN Triggerd', false);
+    									$msg =  "Hash validation success.";
+    								}
+    								else
+    								{
+    								    $msg=  "Card Type Empty or Mismatched";
+    								}
+    							}
+    							else
+    							{
+    								$msg=  "Order already in processing Status";
+    							}
+    						}
+    						else
+    						{
+    							$msg=  "Your Validation id could not be Verified";
+    						}
+    					}
+    					else
+    					{
+    						$msg= "Your Paid Amount is Mismatched";
+    					}	
+    				}
+    				else
+    				{
+    					$msg =  "Hash validation failed.";              		
+    				}
+    				echo $msg;
+    			}
+			}
+			
+			else
+			{
+			    echo "Invalid Status!";
+			}
+		}
 	
    // Hash Key Gernate For SSL Commerz
 	   public function sslcommerz_hash_key($store_passwd="", $parameters=array()) {
