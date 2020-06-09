@@ -31,7 +31,7 @@
   
   <div class="buttons">
     <div class="right">
-      <input type="submit" value="<?php echo $button_confirm; ?>" class="button" />
+      <input type="submit" value="<?php echo $button_confirm; ?>" class="btn btn-primary" />
     </div>
   </div>
 </form>

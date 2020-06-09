@@ -58,24 +58,7 @@
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <label class="col-sm-2 control-label" for="input-total"><?php echo $entry_emi; ?></label>
-            <div class="col-sm-10">
-              <select name="SSLCommerce_emi" class="form-control">
-                <?php if (SSLCommerce_emi == 'live') { ?>
-                <option value="live" selected="selected"><?php echo $emi_live; ?></option>
-                <?php } else { ?>
-                <option value="live"><?php echo $emi_live; ?></option>
-                <?php } ?>
-                <?php if (SSLCommerce_emi == 'disable') { ?>
-                <option value="disable" selected="selected"><?php echo $emi_disable; ?></option>
-                <?php } else { ?>
-                <option value="disable"><?php echo $emi_disable; ?></option>
-                <?php } ?>
-              
-              </select>
-            </div>
-          </div>  
+            
           <div class="form-group">
             <label class="col-sm-2 control-label" for="input-total"><?php echo $entry_order_status; ?></label>
             <div class="col-sm-10">

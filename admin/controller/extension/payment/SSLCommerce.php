@@ -1,18 +1,31 @@
 <?php
 /**
- * SSLCommerce - 
- * PHP4 und PHP5
+ * admin/controller/extension/payment/SSLCommerce.php
  *
- * @version 2.0
- * @author JM Redwan <redwans@gmail.com>
- * @copyright 2016 https://www.sslcommerz.com.bd
- * Free Payment Module for OpenCart.com
+ * Copyright (c) 2009-2016 Software Shop Limited
+ *
+ * LICENSE:
+ *
+ * This payment module is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This payment module is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * @author     JM Redwan
+ * @copyright  2009-2016 SSLCommerz
+ * @license    http://www.opensource.org/licenses/lgpl-license.php LGPL
+ * @version    2.0.0
  */
-class ControllerPaymentSSLCommerce extends Controller {
+class ControllerExtensionPaymentSSLCommerce extends Controller {
 	private $error = array();
 
 	public function index() {
-		$this->load->language('payment/SSLCommerce');
+		$this->load->language('extension/payment/SSLCommerce');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
@@ -24,7 +37,7 @@ class ControllerPaymentSSLCommerce extends Controller {
 			$this->session->data['success'] = $this->language->get('text_success');
 
 			//$this->redirect($this->url->link('extension/payment', 'token=' . $this->session->data['token'], 'SSL'));
-                        $this->response->redirect($this->url->link('extension/payment', 'token=' . $this->session->data['token'], 'SSL'));
+                        $this->response->redirect($this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=payment', true));
 		}
 
 		$data['heading_title'] = $this->language->get('heading_title');
@@ -37,10 +50,6 @@ class ControllerPaymentSSLCommerce extends Controller {
 		$data['text_live'] = $this->language->get('text_live');
 		$data['text_successful'] = $this->language->get('text_successful');
 		$data['text_fail'] = $this->language->get('text_fail');
-
-	$data['emi_live'] = $this->language->get('emi_live');
-		$data['emi_disable'] = $this->language->get('emi_disable');
-$data['entry_emi'] = $this->language->get('entry_emi');
 
 		$data['enter_store_id'] = $this->language->get('enter_store_id');
 		$data['entry_store_password'] = $this->language->get('entry_store_password');
@@ -84,11 +93,11 @@ $data['entry_emi'] = $this->language->get('entry_emi');
 
    		$data['breadcrumbs'][] = array(
        		'text'      => $this->language->get('heading_title'),
-			'href'      => $this->url->link('payment/SSLCommerce', 'token=' . $this->session->data['token'], 'SSL'),
+			'href'      => $this->url->link('extension/payment/SSLCommerce', 'token=' . $this->session->data['token'], 'SSL'),
       		'separator' => ' :: '
    		);
 
-		$data['action'] = $this->url->link('payment/SSLCommerce', 'token=' . $this->session->data['token'], 'SSL');
+		$data['action'] = $this->url->link('extension/payment/SSLCommerce', 'token=' . $this->session->data['token'], 'SSL');
 
 		$data['cancel'] = $this->url->link('extension/payment', 'token=' . $this->session->data['token'], 'SSL');
 
@@ -108,12 +117,6 @@ $data['entry_emi'] = $this->language->get('entry_emi');
 			$data['SSLCommerce_test'] = $this->request->post['SSLCommerce_test'];
 		} else {
 			$data['SSLCommerce_test'] = $this->config->get('SSLCommerce_test');
-		}
-		
-		if (isset($this->request->post['SSLCommerce_emi'])) {
-			$data['SSLCommerce_emi'] = $this->request->post['SSLCommerce_emi'];
-		} else {
-			$data['SSLCommerce_emi'] = $this->config->get('SSLCommerce_emi');
 		}
 
 		if (isset($this->request->post['SSLCommerce_total'])) {
@@ -168,12 +171,12 @@ $data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
 
-		$this->response->setOutput($this->load->view('payment/SSLCommerce.tpl', $data));
+		$this->response->setOutput($this->load->view('extension/payment/SSLCommerce.tpl', $data));
 		
 	}
 
 	private function validate() {
-		if (!$this->user->hasPermission('modify', 'payment/SSLCommerce')) {
+		if (!$this->user->hasPermission('modify', 'extension/payment/SSLCommerce')) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 
