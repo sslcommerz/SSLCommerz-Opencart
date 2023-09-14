@@ -1,11 +1,11 @@
 <?php
 
-$_['heading_title']      = 'SSLCommerce V4';
+$_['heading_title']      = 'SSLCommerz V4';
 
 // Text
 $_['text_payment']       = 'Payment';
 $_['text_success']       = 'Success: You have modified SSLCommerce account details!';
-$_['text_SSLCommerce']      = '<a onclick="window.open(\'https://www.sslcommerz.com\');"><img src="view/image/payment/logo.png" alt="SSLCommerce" title="SSLCommerce" style="border: 1px solid #EEEEEE;" /></a>';
+$_['text_SSLCommerce']      = '<a onclick="window.open(\'https://www.sslcommerz.com\');"><img src="view/image/payment/logo.png" alt="SSLCommerz" title="SSLCommerz" style="border: 1px solid #EEEEEE;" /></a>';
 $_['text_live']          = 'Live';
 $_['text_successful']    = 'Sandbox';
 $_['text_fail']          = 'Always Fail';
